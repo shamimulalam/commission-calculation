@@ -1,8 +1,8 @@
 {
-    "name": "commission-calculation-task",
+    "name": "commission/calculationtask",
     "description": "Commission Calculation Process By Saif",
     "keywords": [],
-    "type": "project",
+    "type": "task",
     "autoload": {
         "psr-4": {
             "CommissionTask\\": "src"
