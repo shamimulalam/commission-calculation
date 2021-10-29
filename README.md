@@ -1,2 +1,4 @@
-# commission-calculation
-Commission-Calculation
+##Installation
+composer install
+##Launching
+php index.php input.csv
