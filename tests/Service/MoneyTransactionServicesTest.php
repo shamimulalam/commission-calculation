@@ -18,8 +18,9 @@ class MoneyTransactionServicesTest extends TestCase
     private $transactionModel;
 
     /**
-     * TransactionControllerTest constructor.
+     * MoneyTransactionServicesTest constructor.
      */
+
     public function __construct()
     {
         parent::__construct();
@@ -31,7 +32,7 @@ class MoneyTransactionServicesTest extends TestCase
 
     protected static function getMethod($class, $name)
     {
-        $class = new ReflectionClass($class);
+        $class  = new ReflectionClass($class);
         $method = $class->getMethod($name);
         $method->setAccessible(true);
         return $method;
@@ -39,40 +40,40 @@ class MoneyTransactionServicesTest extends TestCase
 
     public function testDepositInCommissionEUR()
     {
-        $method = self::getMethod('CommissionTask\Service\MoneyTransactionServices', 'depositCommission');
+        $method      = self::getMethod('CommissionTask\Service\MoneyTransactionServices', 'depositCommission');
         $this->transactionModel->setDate("2016-01-10");
         $this->transactionModel->setUserId("2");
         $this->transactionModel->setUserType("business");
         $this->transactionModel->setTransactionType("deposit");
         $this->transactionModel->setTransactionAmount("10000.00");
         $this->transactionModel->setCurrency("EUR");
-        $result = $method->invokeArgs($this->services, [$this->transactionModel]);
+        $result = $method->invokeArgs($this->services, [$this->transactionModel,$this->setting]);
         $this->assertEquals(3.00, $result);
     }
 
-    public function testDepositInCommissionUSD()
+    public function testDepositCommissionUSD()
     {
-        $method = self::getMethod('CommissionTask\Service\MoneyTransactionServices', 'depositCommission');
+        $method      = self::getMethod('CommissionTask\Service\MoneyTransactionServices', 'depositCommission');
         $this->transactionModel->setDate("2016-01-05");
         $this->transactionModel->setUserId("1");
         $this->transactionModel->setUserType("private");
         $this->transactionModel->setTransactionType("deposit");
         $this->transactionModel->setTransactionAmount("100.00");
         $this->transactionModel->setCurrency("USD");
-        $result = $method->invokeArgs($this->services, [$this->transactionModel]);
+        $result = $method->invokeArgs($this->services, [$this->transactionModel,$this->setting]);
         $this->assertEquals(0.03, $result);
     }
 
-    public function testCashInCommissionJPY()
+    public function testDepositCommissionJPY()
     {
-        $method = self::getMethod('CommissionTask\Service\MoneyTransactionServices', 'depositCommission');
+        $method      = self::getMethod('CommissionTask\Service\MoneyTransactionServices', 'depositCommission');
         $this->transactionModel->setDate("2016-01-05");
         $this->transactionModel->setUserId("1");
         $this->transactionModel->setUserType("private");
         $this->transactionModel->setTransactionType("deposit");
         $this->transactionModel->setTransactionAmount("10000");
         $this->transactionModel->setCurrency("JPY");
-        $result = $method->invokeArgs($this->services, [$this->transactionModel]);
+        $result = $method->invokeArgs($this->services, [$this->transactionModel,$this->setting]);
         $this->assertEquals(3, $result);
     }
 
@@ -84,8 +85,8 @@ class MoneyTransactionServicesTest extends TestCase
         $this->transactionModel->setTransactionType("deposit");
         $this->transactionModel->setTransactionAmount("10000");
         $this->transactionModel->setCurrency("JPY");
-        $result = $this->convertCurrency($this->transactionModel, $this->setting, 100);
-        $this->assertEquals(12953, $result);
+        $result = $this->convertCurrency($this->transactionModel, $this->setting);
+        $this->assertEquals(77.21, $result);
     }
 
     public function testConvertCurrencyFromEUR()
@@ -99,93 +100,29 @@ class MoneyTransactionServicesTest extends TestCase
         $result = $this->convertCurrency($this->transactionModel, $this->setting, 100);
         $this->assertEquals(12953, $result);
     }
-    /*
+    public function testWithdrawCommissionTransactionPrivate()
+    {
+        $method      = self::getMethod('CommissionTask\Service\MoneyTransactionServices', 'withdrawCommission');
+        $this->transactionModel->setDate("2016-01-05");
+        $this->transactionModel->setUserId("1");
+        $this->transactionModel->setUserType("private");
+        $this->transactionModel->setTransactionType("withdraw");
+        $this->transactionModel->setTransactionAmount("1100");
+        $this->transactionModel->setCurrency("EUR");
+        $result = $method->invokeArgs($this->services, [$this->transactionModel,$this->setting]);
+        $this->assertEquals(0.3, $result);
+    }
 
-
-
-        public function testConvertCurrencyToEUR()
-        {
-            $method      = self::getMethod('Paysera\Controllers\TransactionController', 'convertCurrency');
-            $obj         = new TransactionController(new TransactionRepository(), $this->config);
-            $transaction = new Transaction();
-            $transaction->setDate("2016-01-05");
-            $transaction->setUserId("1");
-            $transaction->setUserType("private");
-            $transaction->setTransactionType("deposit");
-            $transaction->setTransactionAmount("10000");
-            $transaction->setCurrency("JPY");
-
-            $result = $method->invokeArgs($obj, [$transaction]);
-
-            self::assertEquals(77.21, $result);
-        }
-
-        public function testConvertCurrencyFromEUR()
-        {
-            $method      = self::getMethod('Paysera\Controllers\TransactionController', 'convertCurrency');
-            $obj         = new TransactionController(new TransactionRepository(), $this->config);
-            $transaction = new Transaction();
-            $transaction->setDate("2016-01-05");
-            $transaction->setUserId("1");
-            $transaction->setUserType("private");
-            $transaction->setTransactionType("deposit");
-            $transaction->setTransactionAmount("10000");
-            $transaction->setCurrency("JPY");
-
-            $result = $method->invokeArgs($obj, [$transaction, 100]);
-
-            self::assertEquals(12953, $result);
-        }
-
-        public function testCashOutCommissionOneTransactionprivate()
-        {
-            $method      = self::getMethod('Paysera\Controllers\TransactionController', 'cashOutCommission');
-            $obj         = new TransactionController(new TransactionRepository(), $this->config);
-            $transaction = new Transaction();
-            $transaction->setDate("2016-01-05");
-            $transaction->setUserId("1");
-            $transaction->setUserType("private");
-            $transaction->setTransactionType("withdraw");
-            $transaction->setTransactionAmount("1100");
-            $transaction->setCurrency("EUR");
-
-            $result = $method->invokeArgs($obj, [$transaction]);
-
-            self::assertEquals(0.3, $result);
-        }
-
-        public function testCashOutCommissionOneTransactionLegalMin()
-        {
-            $method      = self::getMethod('Paysera\Controllers\TransactionController', 'cashOutCommission');
-            $obj         = new TransactionController(new TransactionRepository(), $this->config);
-            $transaction = new Transaction();
-            $transaction->setDate("2016-01-05");
-            $transaction->setUserId("1");
-            $transaction->setUserType("business");
-            $transaction->setTransactionType("withdraw");
-            $transaction->setTransactionAmount("50");
-            $transaction->setCurrency("EUR");
-
-            $result = $method->invokeArgs($obj, [$transaction]);
-
-            self::assertEquals(0.25, $result);
-        }
-
-        public function testCashOutCommissionOneTransactionLegalMax()
-        {
-            $method      = self::getMethod('Paysera\Controllers\TransactionController', 'cashOutCommission');
-            $obj         = new TransactionController(new TransactionRepository(), $this->config);
-            $transaction = new Transaction();
-            $transaction->setDate("2016-01-05");
-            $transaction->setUserId("1");
-            $transaction->setUserType("private");
-            $transaction->setTransactionType("withdraw");
-            $transaction->setTransactionAmount("5000");
-            $transaction->setCurrency("EUR");
-
-            $result = $method->invokeArgs($obj, [$transaction]);
-
-            self::assertEquals(12, $result);
-        }*/
-
+    public function testWithdrawCommissionTransactionBusiness()
+    {
+        $method      = self::getMethod('CommissionTask\Service\MoneyTransactionServices', 'withdrawCommission');
+        $this->transactionModel->setDate("2016-01-05");
+        $this->transactionModel->setUserId("1");
+        $this->transactionModel->setUserType("business");
+        $this->transactionModel->setTransactionType("withdraw");
+        $this->transactionModel->setTransactionAmount("50");
+        $this->transactionModel->setCurrency("EUR");
+        $result = $method->invokeArgs($this->services, [$this->transactionModel,$this->setting]);
+        $this->assertEquals(0.25, $result);
+    }
 }
