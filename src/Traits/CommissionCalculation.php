@@ -6,16 +6,7 @@ use CommissionTask\Models\TransactionModel;
 
 trait CommissionCalculation
 {
-    private function depositCommission(TransactionModel $transaction, $setting)
-    {
-        $commission = $transaction->getTransactionAmount() * $setting['depositCommissionPercent'];
-        $convertedLimit = $this->convertCurrency($transaction, $setting);
-        if ($commission > $convertedLimit) {
-            return $convertedLimit;
-        } else {
-            return $commission;
-        }
-    }
+
 
     private function withdrawCommission(TransactionModel $transaction, $setting)
     {
@@ -28,31 +19,27 @@ trait CommissionCalculation
             /** @var TransactionModel $userTransaction */
             foreach ($userTransactions as $userTransaction) {
                 $currentDate = new \DateTime($userTransaction->getDate());
-                if ($week == $currentDate->format('W') && $userTransaction->getTransactionType() == TransactionModel::WITHDRAW) {
-                    if ($userTransaction->getId() == $transaction->getId()) {
+                if (
+                    $week == $currentDate->format('W') &&
+                    $userTransaction->getTransactionType() == TransactionModel::WITHDRAW ) {
+                    if ($userTransaction->getId() == $transaction->getId() ) {
                         break;
                     }
                     $transactionsPerWeek++;
                     $transactionsPerWeekAmount += $this->convertCurrency($userTransaction, $setting);
                 }
             }
-            //  var_dump($transactionsPerWeekAmount);
-            //exit();
             /** private user's discount for cashout calculation */
             if ($transactionsPerWeek >= $setting['withdrawCommissionCommonFreeTransactionsLimit']) {
-                var_dump(1);
-                exit();
                 $commission = $transaction->getTransactionAmount() * $setting['withdrawCommissionPercentCommon'];
                 return $commission;
-            } else {
+            }else {
 
-                if ($transactionsPerWeekAmount > $setting['withdrawCommissionCommonDiscount']) {
+                if ($transactionsPerWeekAmount >=  $setting['withdrawCommissionCommonDiscount'] ) {
                     $commission = $transaction->getTransactionAmount() * $setting['withdrawCommissionPercentCommon'];
                     return $commission;
                 } else {
-
                     $amount = max($this->convertCurrency($transaction, $setting) + $transactionsPerWeekAmount - $setting['withdrawCommissionCommonDiscount'], 0);
-
                     $commission = $amount * $setting['withdrawCommissionPercentCommon'];
                     return $this->convertCurrency($transaction, $setting, $commission);
                 }
@@ -60,7 +47,7 @@ trait CommissionCalculation
             }
         } else {
             $commission = $transaction->getTransactionAmount() * $setting['withdrawBusinessCommissionPercent'];
-            $convertedLimit = $this->convertCurrency($transaction, $setting);
+            $convertedLimit = $this->convertCurrency($transaction, $setting, $commission);
             if ($commission < $convertedLimit) {
                 return $convertedLimit;
             } else {

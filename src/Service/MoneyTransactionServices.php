@@ -38,11 +38,11 @@ class MoneyTransactionServices
         $this->checkCommission($getTransactionData);
 
     }
-    private function checkCommission(array $transactions){
+    private function checkCommission(TransactionModel $transactions){
         if (is_array($transactions) && count($transactions)>0){
             foreach ($transactions as $transaction) {
                 if ($transaction->getTransactionType() == TransactionModel::Deposit) {
-                    $commission = $this->depositCommission($transaction,$this->setting);
+                    $commission = $this->depositCommission($transaction);
                 } else {
                     $commission = $this->withdrawCommission($transaction,$this->setting);
                 }
@@ -52,5 +52,17 @@ class MoneyTransactionServices
             print_r("Date Not Found\n");
         }
     }
+
+    private function depositCommission(TransactionModel $transaction)
+    {
+        $commission = $transaction->getTransactionAmount() * $this->setting['depositCommissionPercent'];
+        $convertedLimit = $this->convertCurrency($transaction, $this->setting);
+        if ($commission > $convertedLimit) {
+            return $convertedLimit;
+        } else {
+            return $commission;
+        }
+    }
+
 
 }
