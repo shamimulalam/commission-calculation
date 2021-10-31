@@ -5,8 +5,8 @@ namespace CommissionTask\Models;
 class TransactionModel
 {
     const Deposit = "deposit";
-
     const WITHDRAW = "withdraw";
+
 
     private $id;
 

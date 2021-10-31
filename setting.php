@@ -11,5 +11,13 @@ return [
         'USD' => 1.1497,
         'JPY' => 129.53,
     ],
+    "user_types" => [
+        "private" => [
+            "commision_rate" => ".30"
+        ],
+        "business" => [
+            "commision_rate" => ".30"
+        ]
+    ]
 
 ];

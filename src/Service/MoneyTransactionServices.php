@@ -38,6 +38,7 @@ class MoneyTransactionServices
         $this->checkCommission($getTransactionData);
 
     }
+
     private function checkCommission($transactions){
         if (is_array($transactions) && count($transactions)>0){
             foreach ($transactions as $transaction) {
@@ -65,17 +66,16 @@ class MoneyTransactionServices
     private function withdrawCommission(TransactionModel $transaction, $setting)
     {
         if ($transaction->getUserType() == 'private') {
-            $date = new \DateTime($transaction->getDate());
-            $week = $date->format('W');
+            $week =date("oW", strtotime($transaction->getDate()));
             $userTransactions = $this->transactionRepository->getByParam('userId', $transaction->getUserId());
             $transactionsPerWeek = 0;
             $transactionsPerWeekAmount = 0;
 
             /** @var TransactionModel $userTransaction */
             foreach ($userTransactions as $userTransaction) {
-                $currentDate = new \DateTime($userTransaction->getDate());
+                $currentDate = date("oW", strtotime($userTransaction->getDate()));
                 if (
-                    $week == $currentDate->format('W') &&
+                    $week == $currentDate &&
                     $userTransaction->getTransactionType() == TransactionModel::WITHDRAW ) {
                     if ($userTransaction->getId() == $transaction->getId() ) {
                         break;

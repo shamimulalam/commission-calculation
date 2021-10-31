@@ -5,6 +5,7 @@ namespace CommissionTask\Traits;
 use CommissionTask\Models\TransactionModel;
 use CommissionTask\Repositories\TransactionInterface;
 use CommissionTask\Repositories\TransactionRepository;
+use phpDocumentor\Reflection\Types\This;
 
 trait CommissionCalculation
 {
@@ -18,11 +19,19 @@ trait CommissionCalculation
         }
         $fig = pow(10, $setting['commissionPrecision']);
         $converted = ceil($converted * $fig) / $fig;
-        return $converted;
+        return  floor($converted);
     }
 
     private function printCommission($commission)
     {
         fwrite(STDOUT, sprintf("%0.2f\n", $commission));
+    }
+    private function gracefulRound($val, $min = 2, $max = 4) {
+        $result = round($val, $min);
+        if ($result == 0 && $min < $max) {
+            return $this->gracefulRound($val, ++$min, $max);
+        } else {
+            return $result;
+        }
     }
 }
