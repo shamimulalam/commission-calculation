@@ -40,6 +40,7 @@ class TransactionRepository implements TransactionInterface
     {
         $this->transactions[] = $transaction;
     }
+
     public function getByParam($param, $value)
     {
         $userTransactions = [];

@@ -9,6 +9,7 @@ use CommissionTask\Traits\CommissionCalculation;
 class MoneyTransactionServices
 {
     use CommissionCalculation;
+
     /**
      * @var TransactionInterface
      */
@@ -28,7 +29,7 @@ class MoneyTransactionServices
     public function __construct(TransactionInterface $repository, array $setting)
     {
         $this->transactionRepository = $repository;
-        $this->setting                = $setting;
+        $this->setting = $setting;
     }
 
     public function index($filename)
@@ -36,23 +37,28 @@ class MoneyTransactionServices
         $this->transactionRepository->setDataFromFile($filename);
         $getTransactionData = $this->transactionRepository->getAllData();
         $this->checkCommission($getTransactionData);
-
     }
 
-    private function checkCommission($transactions){
-        if (is_array($transactions) && count($transactions)>0){
+    private function checkCommission($transactions)
+    {
+        if (is_array($transactions) && count($transactions) > 0) {
             foreach ($transactions as $transaction) {
                 if ($transaction->getTransactionType() == TransactionModel::Deposit) {
-                    $commission = $this->depositCommission($transaction,$this->setting);
+                    $commission = $this->depositCommission($transaction, $this->setting);
                 } else {
-                    $commission = $this->withdrawCommission($transaction,$this->setting);
+                    $commission = $this->withdrawCommission($transaction, $this->setting);
                 }
-                $this->printCommission($commission);
+                $commissionData['amount'] = $commission or null;
+                $commissionData['setting'] = $this->setting or null;
+                $commissionData['precision'] = $this->setting['currencyConversion'][$transaction->getCurrency(
+                )]['precision'] or null;
+                $this->printCommission($commissionData);
             }
-        }else{
+        } else {
             print_r("Date Not Found\n");
         }
     }
+
     private function depositCommission(TransactionModel $transaction, $setting)
     {
         $commission = $transaction->getTransactionAmount() * $setting['depositCommissionPercent'];
@@ -63,10 +69,11 @@ class MoneyTransactionServices
             return $commission;
         }
     }
+
     private function withdrawCommission(TransactionModel $transaction, $setting)
     {
         if ($transaction->getUserType() == 'private') {
-            $week =date("oW", strtotime($transaction->getDate()));
+            $week = date("oW", strtotime($transaction->getDate()));
             $userTransactions = $this->transactionRepository->getByParam('userId', $transaction->getUserId());
             $transactionsPerWeek = 0;
             $transactionsPerWeekAmount = 0;
@@ -76,8 +83,8 @@ class MoneyTransactionServices
                 $currentDate = date("oW", strtotime($userTransaction->getDate()));
                 if (
                     $week == $currentDate &&
-                    $userTransaction->getTransactionType() == TransactionModel::WITHDRAW ) {
-                    if ($userTransaction->getId() == $transaction->getId() ) {
+                    $userTransaction->getTransactionType() == TransactionModel::WITHDRAW) {
+                    if ($userTransaction->getId() == $transaction->getId()) {
                         break;
                     }
                     $transactionsPerWeek++;
@@ -88,17 +95,21 @@ class MoneyTransactionServices
             if ($transactionsPerWeek >= $setting['withdrawCommissionCommonFreeTransactionsLimit']) {
                 $commission = $transaction->getTransactionAmount() * $setting['withdrawCommissionPercentCommon'];
                 return $commission;
-            }else {
-
-                if ($transactionsPerWeekAmount >=  $setting['withdrawCommissionCommonDiscount'] ) {
+            } else {
+                if ($transactionsPerWeekAmount >= $setting['withdrawCommissionCommonDiscount']) {
                     $commission = $transaction->getTransactionAmount() * $setting['withdrawCommissionPercentCommon'];
                     return $commission;
                 } else {
-                    $amount = max($this->convertCurrency($transaction, $setting) + $transactionsPerWeekAmount - $setting['withdrawCommissionCommonDiscount'], 0);
+                    $amount = max(
+                        $this->convertCurrency(
+                            $transaction,
+                            $setting
+                        ) + $transactionsPerWeekAmount - $setting['withdrawCommissionCommonDiscount'],
+                        0
+                    );
                     $commission = $amount * $setting['withdrawCommissionPercentCommon'];
                     return $this->convertCurrency($transaction, $setting, $commission);
                 }
-
             }
         } else {
             $commission = $transaction->getTransactionAmount() * $setting['withdrawBusinessCommissionPercent'];

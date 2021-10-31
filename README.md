@@ -8,3 +8,5 @@ php index.php input.csv
 
 ##Test 
 `vendor/bin/phpunit tests`
+or
+`composer run test`

@@ -10,6 +10,11 @@ if ($argc != 2) {
 }
 
 $setting = include('setting.php');
+try {
+    $transactionController = new MoneyTransactionServices(new TransactionRepository() , $setting);
+    $transactionController->index($argv[1]);
+} catch (Exception $ex) {
+    echo $ex->getMessage();
+    exit(1);
+}
 
-$transactionController = new MoneyTransactionServices(new TransactionRepository() , $setting);
-$transactionController->index($argv[1]);

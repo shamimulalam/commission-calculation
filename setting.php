@@ -7,9 +7,18 @@ return [
     'withdrawCommissionCommonDiscount' => 1000.00,
     'commissionPrecision' => 2,
     'currencyConversion' => [
-        'EUR' => 1,
-        'USD' => 1.1497,
-        'JPY' => 129.53,
+        'EUR' => [
+            'rate' => 1,
+            'precision' => 2,
+        ],
+        'USD' => [
+            'rate' => 1.1497,
+            'precision' => 2,
+        ],
+        'JPY' => [
+            'rate' => 129.53,
+            'precision' => 0,
+        ]
     ],
     "user_types" => [
         "private" => [

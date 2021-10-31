@@ -22,7 +22,6 @@ class TransactionRepositoryTest extends TestCase
         $repo->addData($transaction);
 
         $this->assertEquals([$transaction], $repo->getAllData());
-
     }
 
 

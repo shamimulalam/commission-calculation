@@ -3,9 +3,6 @@
 namespace CommissionTask\Traits;
 
 use CommissionTask\Models\TransactionModel;
-use CommissionTask\Repositories\TransactionInterface;
-use CommissionTask\Repositories\TransactionRepository;
-use phpDocumentor\Reflection\Types\This;
 
 trait CommissionCalculation
 {
@@ -13,25 +10,27 @@ trait CommissionCalculation
     private function convertCurrency(TransactionModel $transaction, $setting, $amount = -1)
     {
         if ($amount < 0) {
-            $converted = $transaction->getTransactionAmount() / $setting['currencyConversion'][$transaction->getCurrency()];
+            $converted = $transaction->getTransactionAmount(
+                ) / $setting['currencyConversion'][$transaction->getCurrency()]['rate'];
         } else {
-            $converted = $amount * $setting['currencyConversion'][$transaction->getCurrency()];
+            $converted = $amount * $setting['currencyConversion'][$transaction->getCurrency()]['rate'];
         }
-        $fig = pow(10, $setting['commissionPrecision']);
-        $converted = ceil($converted * $fig) / $fig;
-        return  floor($converted);
+        return $converted;
     }
 
-    private function printCommission($commission)
+    private function printCommission($commissionData)
     {
-        fwrite(STDOUT, sprintf("%0.2f\n", $commission));
+        $roundUp = $this->roundUp($commissionData['amount'], $commissionData['setting'], $commissionData['precision']);
+        fwrite(STDOUT, print_r($roundUp . "\n", true));
     }
-    private function gracefulRound($val, $min = 2, $max = 4) {
-        $result = round($val, $min);
-        if ($result == 0 && $min < $max) {
-            return $this->gracefulRound($val, ++$min, $max);
-        } else {
-            return $result;
+
+    public function roundUp($amount, $setting, $precision)
+    {
+        $amount = bcmul($amount, (string)pow(10, $precision), $setting['commissionPrecision']);
+        $parts = explode('.', $amount);
+        if (count($parts) == 2 && intval($parts[1]) > 0) {
+            $parts[0] = bcadd($parts[0], '1', $setting['commissionPrecision']);
         }
+        return bcdiv($parts[0], (string)pow(10, $precision), $precision);
     }
 }
